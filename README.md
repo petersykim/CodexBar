@@ -1,6 +1,6 @@
 # CodexBar 🎚️ - May your tokens never run out.
 
-Tiny macOS 14+ menu bar app that keeps your Codex, Claude, Cursor, Gemini, Antigravity, Droid (Factory), Copilot, z.ai, Kiro, Vertex AI, Augment, Amp, JetBrains AI, and OpenRouter limits visible (session + weekly where available) and shows when each window resets. One status item per provider (or Merge Icons mode with a provider switcher and optional Overview tab); enable what you use from Settings. No Dock icon, minimal UI, dynamic bar icons in the menu bar.
+Tiny macOS 14+ menu bar app that keeps your Codex, Claude, **Ollama**, Cursor, Gemini, Antigravity, Droid (Factory), Copilot, z.ai, Kiro, Vertex AI, Augment, Amp, JetBrains AI, and OpenRouter limits visible (session + weekly where available) and shows when each window resets. One status item per provider (or Merge Icons mode with a provider switcher and optional Overview tab); enable what you use from Settings. No Dock icon, minimal UI, dynamic bar icons in the menu bar.
 
 <img src="codexbar.png" alt="CodexBar menu screenshot" width="520" />
 
@@ -26,13 +26,14 @@ Linux support via Omarchy: community Waybar module and TUI, driven by the `codex
 
 ### First run
 - Open Settings → Providers and enable what you use.
-- Install/sign in to the provider sources you rely on (e.g. `codex`, `claude`, `gemini`, browser cookies, or OAuth; Antigravity requires the Antigravity app running).
+- Install/sign in to the provider sources you rely on (e.g. `codex`, `claude`, `ollama`, `gemini`, browser cookies, or OAuth; Antigravity requires the Antigravity app running).
 - Optional: Settings → Providers → Codex → OpenAI cookies (Automatic or Manual) to add dashboard extras.
 
 ## Providers
 
 - [Codex](docs/codex.md) — Local Codex CLI RPC (+ PTY fallback) and optional OpenAI web dashboard extras.
 - [Claude](docs/claude.md) — OAuth API or browser cookies (+ CLI PTY fallback); session + weekly usage.
+- **[Ollama](docs/ollama.md)** — Cloud usage tracking via ollama.com cookies OR local API for self-hosted instances.
 - [Cursor](docs/cursor.md) — Browser session cookies for plan + usage + billing resets.
 - [Gemini](docs/gemini.md) — OAuth-backed quota API using Gemini CLI credentials (no browser cookies).
 - [Antigravity](docs/antigravity.md) — Local language server probe (experimental); no external auth.
@@ -48,6 +49,22 @@ Linux support via Omarchy: community Waybar module and TUI, driven by the `codex
 - [JetBrains AI](docs/jetbrains.md) — Local XML-based quota from JetBrains IDE configuration; monthly credits tracking.
 - [OpenRouter](docs/openrouter.md) — API token for credit-based usage tracking across multiple AI providers.
 - Open to new providers: [provider authoring guide](docs/provider.md).
+
+## Ollama Provider
+
+Ollama integration supports two modes:
+
+### Cloud Mode (ollama.com)
+- **Session usage**: Resets every 3 hours
+- **Weekly usage**: Resets every 7 days
+- **Authentication**: Browser cookies (`__Secure-session`, `aid`, `cf_clearance`)
+- **Setup**: Settings → Providers → Ollama → "Import from Browser" button
+- **Dashboard**: https://ollama.com/settings
+
+### Local Mode (self-hosted)
+- **API endpoint**: `http://127.0.0.1:11434` (configurable)
+- **No authentication required**
+- **Usage**: Track local model pulls, generations, and API calls
 
 ## Icon & Screenshot
 The menu bar icon is a tiny two-bar meter:
@@ -68,67 +85,13 @@ The menu bar icon is a tiny two-bar meter:
 - Privacy-first: on-device parsing by default; browser cookies are opt-in and reused (no passwords stored).
 
 ## Privacy note
-Wondering if CodexBar scans your disk? It doesn’t crawl your filesystem; it reads a small set of known locations (browser cookies/local storage, local JSONL logs) when the related features are enabled. See the discussion and audit notes in [issue #12](https://github.com/steipete/CodexBar/issues/12).
+Wondering if CodexBar scans your disk? It doesn't crawl your filesystem; it reads a small set of known locations (browser cookies/local storage, local JSONL logs) when the related features are enabled. See the discussion and audit notes in [issue #12](https://github.com/steipete/CodexBar/issues/12).
 
-## macOS permissions (why they’re needed)
-- **Full Disk Access (optional)**: only required to read Safari cookies/local storage for web-based providers (Codex web, Claude web, Cursor, Droid/Factory). If you don’t grant it, use Chrome/Firefox cookies or CLI-only sources instead.
+## macOS permissions (why they're needed)
+- **Full Disk Access (optional)**: only required to read Safari cookies/local storage for web-based providers (Codex web, Claude web, Cursor, Droid/Factory, Ollama). If you don't grant it, use Chrome/Firefox cookies or CLI-only sources instead.
 - **Keychain access (prompted by macOS)**:
-  - Chrome cookie import needs the “Chrome Safe Storage” key to decrypt cookies.
+  - Chrome cookie import needs the "Chrome Safe Storage" key to decrypt cookies.
   - Claude OAuth credentials (written by the Claude CLI) are read from Keychain when present.
   - z.ai API token is stored in Keychain from Preferences → Providers; Copilot stores its API token in Keychain during device flow.
   - **How do I prevent those keychain alerts?**
-    - Open **Keychain Access.app** → login keychain → search the item (e.g., “Claude Code-credentials”).
-    - Open the item → **Access Control** → add `CodexBar.app` under “Always allow access by these applications”.
-    - Prefer adding just CodexBar (avoid “Allow all applications” unless you want it wide open).
-    - Relaunch CodexBar after saving.
-    - Reference screenshot: ![Keychain access control](docs/keychain-allow.png)
-  - **How to do the same for the browser?**
-    - Find the browser’s “Safe Storage” key (e.g., “Chrome Safe Storage”, “Brave Safe Storage”, “Firefox”, “Microsoft Edge Safe Storage”).
-    - Open the item → **Access Control** → add `CodexBar.app` under “Always allow access by these applications”.
-    - This removes the prompt when CodexBar decrypts cookies for that browser.
-- **Files & Folders prompts (folder/volume access)**: CodexBar launches provider CLIs (codex/claude/gemini/antigravity). If those CLIs read a project directory or external drive, macOS may ask CodexBar for that folder/volume (e.g., Desktop or an external volume). This is driven by the CLI’s working directory, not background disk scanning.
-- **What we do not request**: no Screen Recording, Accessibility, or Automation permissions; no passwords are stored (browser cookies are reused when you opt in).
-
-## Docs
-- Providers overview: [docs/providers.md](docs/providers.md)
-- Provider authoring: [docs/provider.md](docs/provider.md)
-- UI & icon notes: [docs/ui.md](docs/ui.md)
-- CLI reference: [docs/cli.md](docs/cli.md)
-- Architecture: [docs/architecture.md](docs/architecture.md)
-- Refresh loop: [docs/refresh-loop.md](docs/refresh-loop.md)
-- Status polling: [docs/status.md](docs/status.md)
-- Sparkle updates: [docs/sparkle.md](docs/sparkle.md)
-- Release checklist: [docs/RELEASING.md](docs/RELEASING.md)
-
-## Getting started (dev)
-- Clone the repo and open it in Xcode or run the scripts directly.
-- Launch once, then toggle providers in Settings → Providers.
-- Install/sign in to provider sources you rely on (CLIs, browser cookies, or OAuth).
-- Optional: set OpenAI cookies (Automatic or Manual) for Codex dashboard extras.
-
-## Build from source
-```bash
-swift build -c release          # or debug for development
-./Scripts/package_app.sh        # builds CodexBar.app in-place
-CODEXBAR_SIGNING=adhoc ./Scripts/package_app.sh  # ad-hoc signing (no Apple Developer account)
-open CodexBar.app
-```
-
-Dev loop:
-```bash
-./Scripts/compile_and_run.sh
-```
-
-## Related
-- ✂️ [Trimmy](https://github.com/steipete/Trimmy) — “Paste once, run once.” Flatten multi-line shell snippets so they paste and run.
-- 🧳 [MCPorter](https://mcporter.dev) — TypeScript toolkit + CLI for Model Context Protocol servers.
-- 🧿 [oracle](https://askoracle.dev) — Ask the oracle when you're stuck. Invoke GPT-5 Pro with a custom context and files.
-
-## Looking for a Windows version?
-- [Win-CodexBar](https://github.com/Finesssee/Win-CodexBar)
-
-## Credits
-Inspired by [ccusage](https://github.com/ryoppippi/ccusage) (MIT), specifically the cost usage tracking.
-
-## License
-MIT • Peter Steinberger ([steipete](https://twitter.com/steipete))
+    - Open **Keychain Access.app** → login keychain → search the item (e.g., "Claude Code-credentials").
