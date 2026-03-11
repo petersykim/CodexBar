@@ -32,8 +32,13 @@ public enum OllamaProviderDescriptor {
                 supportsTokenCost: false,
                 noDataMessage: { "Ollama cost summary is not supported." }),
             fetchPlan: ProviderFetchPlan(
-                sourceModes: [.auto, .web],
-                pipeline: ProviderFetchPipeline(resolveStrategies: { _ in [OllamaStatusFetchStrategy()] })),
+                sourceModes: [.auto, .api, .web],
+                pipeline: ProviderFetchPipeline(resolveStrategies: { _ in
+                    [
+                        OllamaLocalFetchStrategy(),
+                        OllamaStatusFetchStrategy(),
+                    ]
+                })),
             cli: ProviderCLIConfig(
                 name: "ollama",
                 versionDetector: nil))
@@ -45,6 +50,7 @@ struct OllamaStatusFetchStrategy: ProviderFetchStrategy {
     let kind: ProviderFetchKind = .web
 
     func isAvailable(_ context: ProviderFetchContext) async -> Bool {
+        guard context.sourceMode.usesWeb else { return false }
         guard context.settings?.ollama?.cookieSource != .off else { return false }
         return true
     }

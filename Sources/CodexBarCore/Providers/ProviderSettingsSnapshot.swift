@@ -182,10 +182,12 @@ public struct ProviderSettingsSnapshot: Sendable {
     }
 
     public struct OllamaProviderSettings: Sendable {
+        public let baseURL: String?
         public let cookieSource: ProviderCookieSource
         public let manualCookieHeader: String?
 
-        public init(cookieSource: ProviderCookieSource, manualCookieHeader: String?) {
+        public init(baseURL: String?, cookieSource: ProviderCookieSource, manualCookieHeader: String?) {
+            self.baseURL = baseURL
             self.cookieSource = cookieSource
             self.manualCookieHeader = manualCookieHeader
         }

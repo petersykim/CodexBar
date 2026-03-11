@@ -10,6 +10,7 @@ struct OllamaProviderImplementation: ProviderImplementation {
 
     @MainActor
     func observeSettings(_ settings: SettingsStore) {
+        _ = settings.ollamaBaseURL
         _ = settings.ollamaCookieSource
         _ = settings.ollamaCookieHeader
     }
@@ -41,7 +42,7 @@ struct OllamaProviderImplementation: ProviderImplementation {
                 context.settings.ollamaCookieSource = ProviderCookieSource(rawValue: raw) ?? .auto
             })
         let cookieOptions = ProviderCookieSourceUI.options(
-            allowsOff: false,
+            allowsOff: true,
             keychainDisabled: context.settings.debugDisableKeychainAccess)
 
         let cookieSubtitle: () -> String? = {
@@ -56,8 +57,8 @@ struct OllamaProviderImplementation: ProviderImplementation {
         return [
             ProviderSettingsPickerDescriptor(
                 id: "ollama-cookie-source",
-                title: "Cookie source",
-                subtitle: "Automatic imports browser cookies.",
+                title: "Cookie source (optional)",
+                subtitle: "Only needed for Ollama.com web usage (if supported).",
                 dynamicSubtitle: cookieSubtitle,
                 binding: cookieBinding,
                 options: cookieOptions,
@@ -69,6 +70,16 @@ struct OllamaProviderImplementation: ProviderImplementation {
     @MainActor
     func settingsFields(context: ProviderSettingsContext) -> [ProviderSettingsFieldDescriptor] {
         [
+            ProviderSettingsFieldDescriptor(
+                id: "ollama-base-url",
+                title: "Host",
+                subtitle: "Ollama HTTP API base URL (default: http://127.0.0.1:11434)",
+                kind: .plain,
+                placeholder: "http://127.0.0.1:11434",
+                binding: context.stringBinding(\.ollamaBaseURL),
+                actions: [],
+                isVisible: nil,
+                onActivate: nil),
             ProviderSettingsFieldDescriptor(
                 id: "ollama-cookie",
                 title: "",

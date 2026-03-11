@@ -2,6 +2,16 @@ import CodexBarCore
 import Foundation
 
 extension SettingsStore {
+    var ollamaBaseURL: String {
+        get { self.configSnapshot.providerConfig(for: .ollama)?.baseURL ?? "" }
+        set {
+            self.updateProviderConfig(provider: .ollama) { entry in
+                entry.baseURL = self.normalizedConfigValue(newValue)
+            }
+            self.logProviderModeChange(provider: .ollama, field: "baseURL", value: newValue)
+        }
+    }
+
     var ollamaCookieHeader: String {
         get { self.configSnapshot.providerConfig(for: .ollama)?.sanitizedCookieHeader ?? "" }
         set {
@@ -29,8 +39,14 @@ extension SettingsStore {
     func ollamaSettingsSnapshot(tokenOverride: TokenAccountOverride?) -> ProviderSettingsSnapshot
     .OllamaProviderSettings {
         ProviderSettingsSnapshot.OllamaProviderSettings(
+            baseURL: self.ollamaSnapshotBaseURL(tokenOverride: tokenOverride),
             cookieSource: self.ollamaSnapshotCookieSource(tokenOverride: tokenOverride),
             manualCookieHeader: self.ollamaSnapshotCookieHeader(tokenOverride: tokenOverride))
+    }
+
+    private func ollamaSnapshotBaseURL(tokenOverride _: TokenAccountOverride?) -> String? {
+        let raw = self.ollamaBaseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        return raw.isEmpty ? nil : raw
     }
 
     private func ollamaSnapshotCookieHeader(tokenOverride: TokenAccountOverride?) -> String {
