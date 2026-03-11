@@ -89,6 +89,14 @@ struct OllamaProviderImplementation: ProviderImplementation {
                 binding: context.stringBinding(\.ollamaCookieHeader),
                 actions: [
                     ProviderSettingsActionDescriptor(
+                        id: "ollama-import-browser",
+                        title: "Import from Browser",
+                        style: .bordered,
+                        isVisible: { context.settings.ollamaCookieSource == .manual },
+                        perform: {
+                            self.importCookieFromBrowser(settings: context.settings)
+                        }),
+                    ProviderSettingsActionDescriptor(
                         id: "ollama-open-settings",
                         title: "Open Ollama Settings",
                         style: .link,
@@ -102,5 +110,23 @@ struct OllamaProviderImplementation: ProviderImplementation {
                 isVisible: { context.settings.ollamaCookieSource == .manual },
                 onActivate: { context.settings.ensureOllamaCookieLoaded() }),
         ]
+    }
+
+    @MainActor
+    private func importCookieFromBrowser(settings: SettingsStore) {
+        do {
+            let session = try OllamaCookieImporter.importSession(
+                browserDetection: BrowserDetection(),
+                preferredBrowsers: [.chrome, .edge, .safari],
+                allowFallbackBrowsers: true,
+                logger: { msg in CodexBarLog.logger(LogCategories.ollama).debug(msg) })
+            settings.ollamaCookieHeader = session.cookieHeader
+            settings.ollamaCookieSource = .manual
+            CodexBarLog.logger(LogCategories.ollama).info(
+                "Imported Ollama cookie from \(session.sourceLabel)")
+        } catch {
+            CodexBarLog.logger(LogCategories.ollama).error(
+                "Failed to import Ollama cookie: \(error.localizedDescription)")
+        }
     }
 }

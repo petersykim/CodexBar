@@ -5,8 +5,10 @@ struct OllamaLocalFetchStrategy: ProviderFetchStrategy {
     let kind: ProviderFetchKind = .localProbe
 
     func isAvailable(_ context: ProviderFetchContext) async -> Bool {
-        // Only allow in auto/api mode.
+        // Only allow in auto/api mode, but NOT if cookie-based web scraping is configured.
         guard context.sourceMode == .auto || context.sourceMode == .api else { return false }
+        // If cookie source is set (manual or auto), prefer web scraping over local API.
+        guard context.settings?.ollama?.cookieSource == .off else { return false }
         return true
     }
 

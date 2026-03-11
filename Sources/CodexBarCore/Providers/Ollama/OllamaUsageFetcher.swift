@@ -11,6 +11,7 @@ private let ollamaSessionCookieNames: Set<String> = [
     "session",
     "ollama_session",
     "__Host-ollama_session",
+    "__Secure-session",
     "__Secure-next-auth.session-token",
     "next-auth.session-token",
 ]
@@ -527,9 +528,12 @@ public struct OllamaUsageFetcher: Sendable {
         return (html, responseInfo)
     }
 
-    @MainActor private static func recordDump(_ text: String) {
-        if self.recentDumps.count >= 5 { self.recentDumps.removeFirst() }
-        self.recentDumps.append(text)
+    // #6: Removed @MainActor - only manipulates static array, no UI access
+    private static func recordDump(_ text: String) {
+        Task { @MainActor in
+            if self.recentDumps.count >= 5 { self.recentDumps.removeFirst() }
+            self.recentDumps.append(text)
+        }
     }
 
     private final class RedirectDiagnostics: NSObject, URLSessionTaskDelegate, @unchecked Sendable {

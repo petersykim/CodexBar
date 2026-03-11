@@ -147,6 +147,8 @@ final class UsageStore {
     @ObservationIgnored private var tokenTimerTask: Task<Void, Never>?
     @ObservationIgnored private var tokenRefreshSequenceTask: Task<Void, Never>?
     @ObservationIgnored private var pathDebugRefreshTask: Task<Void, Never>?
+    // #7: HTTP response cache
+    @ObservationIgnored private let responseCache = ResponseCache()
     @ObservationIgnored let historicalUsageHistoryStore: HistoricalUsageHistoryStore
     @ObservationIgnored var codexHistoricalDataset: CodexHistoricalDataset?
     @ObservationIgnored var codexHistoricalDatasetAccountKey: String?
@@ -387,8 +389,17 @@ final class UsageStore {
         }
     }
 
+    // MARK: - Refresh deduplication (#3)
+    private var lastRefreshTime: Date = .distantPast
+    private static let refreshDebounceInterval: TimeInterval = 2.0
+
     func refresh(forceTokenUsage: Bool = false) async {
-        guard !self.isRefreshing else { return }
+        // Debounce: prevent rapid duplicate refreshes
+        guard !self.isRefreshing,
+              Date().timeIntervalSince(lastRefreshTime) > Self.refreshDebounceInterval
+        else { return }
+        lastRefreshTime = Date()
+
         let refreshPhase: ProviderRefreshPhase = self.hasCompletedInitialRefresh ? .regular : .startup
 
         await ProviderRefreshContext.$current.withValue(refreshPhase) {
@@ -398,9 +409,17 @@ final class UsageStore {
                 self.hasCompletedInitialRefresh = true
             }
 
+            // #2: Only spawn tasks for enabled providers, merge refreshProvider + refreshStatus
             await withTaskGroup(of: Void.self) { group in
-                for provider in UsageProvider.allCases {
-                    group.addTask { await self.refreshProvider(provider) }
+                let enabledProviders = self.enabledProviders()
+                for provider in enabledProviders {
+                    group.addTask {
+                        await self.refreshProvider(provider)
+                        await self.refreshStatus(provider)
+                    }
+                }
+                // Also refresh disabled providers' status (lightweight)
+                for provider in UsageProvider.allCases where !enabledProviders.contains(provider) {
                     group.addTask { await self.refreshStatus(provider) }
                 }
                 group.addTask { await self.refreshCreditsIfNeeded() }
@@ -427,12 +446,16 @@ final class UsageStore {
         let current = self.preferredSnapshot
         self.snapshots.removeAll()
         self.debugForceAnimation = true
-        Task { @MainActor in
+        // #6: Only MainActor needed for UI state changes, not for sleep
+        Task {
             try? await Task.sleep(for: .seconds(duration))
-            if let current, let provider = self.enabledProviders().first {
-                self.snapshots[provider] = current
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                if let current, let provider = self.enabledProviders().first {
+                    self.snapshots[provider] = current
+                }
+                self.debugForceAnimation = false
             }
-            self.debugForceAnimation = false
         }
     }
 
@@ -589,6 +612,7 @@ final class UsageStore {
         self.sessionQuotaNotifier.post(transition: transition, provider: provider, badge: nil)
     }
 
+    // #6: Removed unnecessary isEnabled check - status checks are independent of provider enablement
     private func refreshStatus(_ provider: UsageProvider) async {
         guard self.settings.statusChecksEnabled else { return }
         guard let meta = self.providerMetadata[provider] else { return }
