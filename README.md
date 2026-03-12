@@ -1,8 +1,29 @@
-# CodexBar 🎚️ - May your tokens never run out.
+# CodexBar + Ollama 🦙
 
-Tiny macOS 14+ menu bar app that keeps your Codex, Claude, **Ollama**, Cursor, Gemini, Antigravity, Droid (Factory), Copilot, z.ai, Kiro, Vertex AI, Augment, Amp, JetBrains AI, and OpenRouter limits visible (session + weekly where available) and shows when each window resets. One status item per provider (or Merge Icons mode with a provider switcher and optional Overview tab); enable what you use from Settings. No Dock icon, minimal UI, dynamic bar icons in the menu bar.
+**What's new:** Added Ollama as a free/low-cost provider to steipete's awesome [CodexBar](https://github.com/steipete/CodexBar) — making AI usage tracking accessible to everyone, not just paid tier users.
 
-<img src="ollama-provider.png" alt="CodexBar menu screenshot" width="520" />
+Ollama brings self-hosted freedom + cloud fallback to the mix. Session + weekly limits, reset timers, menu bar visibility — all the good stuff.
+
+<img src="ollama-provider.png" alt="Ollama usage in CodexBar menu bar" width="520" />
+
+## Quick Setup
+
+### Cloud Mode (ollama.com)
+Free tier: 3-hour session window + weekly quota.
+
+**Pick your auth:**
+- 🍪 **Import from Browser** — One-click cookie grab (Safari/Chrome/Firefox)
+- 📋 **Manual Paste** — Drop cookie header string, no FDA needed
+- ⚙️ **Config Edit** — Tweak `~/.codexbar/config.json` directly
+
+### Local Mode (self-hosted)
+Your own Ollama instance at `http://127.0.0.1:11434`. No auth, no limits, just vibes.
+
+---
+
+## Original CodexBar 🎚️
+
+Tiny macOS 14+ menu bar app that keeps your Codex, Claude, Cursor, Gemini, Antigravity, Droid (Factory), Copilot, z.ai, Kiro, Vertex AI, Augment, Amp, JetBrains AI, and OpenRouter limits visible (session + weekly where available) and shows when each window resets. One status item per provider (or Merge Icons mode with a provider switcher and optional Overview tab); enable what you use from Settings. No Dock icon, minimal UI, dynamic bar icons in the menu bar.
 
 ## Install
 
@@ -17,23 +38,15 @@ Download: <https://github.com/steipete/CodexBar/releases>
 brew install --cask steipete/tap/codexbar
 ```
 
-### Linux (CLI only)
-```bash
-brew install steipete/tap/codexbar
-```
-Or download `CodexBarCLI-v<tag>-linux-<arch>.tar.gz` from GitHub Releases.
-Linux support via Omarchy: community Waybar module and TUI, driven by the `codexbar` executable.
-
 ### First run
 - Open Settings → Providers and enable what you use.
 - Install/sign in to the provider sources you rely on (e.g. `codex`, `claude`, `ollama`, `gemini`, browser cookies, or OAuth; Antigravity requires the Antigravity app running).
-- Optional: Settings → Providers → Codex → OpenAI cookies (Automatic or Manual) to add dashboard extras.
 
 ## Providers
 
+- **[Ollama](docs/ollama.md)** — Free tier cloud + self-hosted local API. Session (3hr) + weekly (7d) windows.
 - [Codex](docs/codex.md) — Local Codex CLI RPC (+ PTY fallback) and optional OpenAI web dashboard extras.
 - [Claude](docs/claude.md) — OAuth API or browser cookies (+ CLI PTY fallback); session + weekly usage.
-- **[Ollama](docs/ollama.md)** — Cloud usage tracking via ollama.com cookies OR local API for self-hosted instances.
 - [Cursor](docs/cursor.md) — Browser session cookies for plan + usage + billing resets.
 - [Gemini](docs/gemini.md) — OAuth-backed quota API using Gemini CLI credentials (no browser cookies).
 - [Antigravity](docs/antigravity.md) — Local language server probe (experimental); no external auth.
@@ -48,45 +61,6 @@ Linux support via Omarchy: community Waybar module and TUI, driven by the `codex
 - [Amp](docs/amp.md) — Browser cookie-based authentication with Amp Free usage tracking.
 - [JetBrains AI](docs/jetbrains.md) — Local XML-based quota from JetBrains IDE configuration; monthly credits tracking.
 - [OpenRouter](docs/openrouter.md) — API token for credit-based usage tracking across multiple AI providers.
-- Open to new providers: [provider authoring guide](docs/provider.md).
-
-## Ollama Provider
-
-Ollama integration supports two modes with flexible authentication options:
-
-### Cloud Mode (ollama.com)
-- **Session usage**: Resets every 3 hours
-- **Weekly usage**: Resets every 7 days
-- **Dashboard**: https://ollama.com/settings
-
-#### Authentication Options (Settings → Providers → Ollama):
-
-1. **Import from Browser** (Recommended)
-   - One-click import of cookies from Safari, Chrome, or Firefox
-   - Requires Full Disk Access for first import
-   - Auto-extracts `__Secure-session`, `aid`, `cf_clearance` cookies
-
-2. **Manual Cookie Entry**
-   - Paste cookie header string directly
-   - No Full Disk Access required
-   - Format: `aid=xxx; cf_clearance=yyy; __Secure-session=zzz`
-
-3. **Config File Mode**
-   - Edit `~/.codexbar/config.json` directly
-   - Set `cookieSource: "manual"` + `cookieHeader` fields
-   - Useful for scripting or remote setups
-
-### Local Mode (self-hosted)
-- **API endpoint**: `http://127.0.0.1:11434` (configurable in settings)
-- **No authentication required**
-- **Usage**: Track local model pulls, generations, and API calls
-- **Setup**: Settings → Providers → Ollama → switch to Local API mode
-
-## Icon & Screenshot
-The menu bar icon is a tiny two-bar meter:
-- Top bar: 5‑hour/session window. If weekly is missing/exhausted and credits are available, it becomes a thicker credits bar.
-- Bottom bar: weekly window (hairline).
-- Errors/stale data dim the icon; status overlays indicate incidents.
 
 ## Features
 - Multi-provider menu bar with per-provider toggles (Settings → Providers).
@@ -96,18 +70,15 @@ The menu bar icon is a tiny two-bar meter:
 - Provider status polling with incident badges in the menu and icon overlay.
 - Merge Icons mode to combine providers into one status item + switcher, with an optional Overview tab for up to three providers.
 - Refresh cadence presets (manual, 1m, 2m, 5m, 15m).
-- Bundled CLI (`codexbar`) for scripts and CI (including `codexbar cost --provider codex|claude` for local cost usage); Linux CLI builds available.
+- Bundled CLI (`codexbar`) for scripts and CI.
 - WidgetKit widget mirrors the menu card snapshot.
 - Privacy-first: on-device parsing by default; browser cookies are opt-in and reused (no passwords stored).
 
-## Privacy note
-Wondering if CodexBar scans your disk? It doesn't crawl your filesystem; it reads a small set of known locations (browser cookies/local storage, local JSONL logs) when the related features are enabled. See the discussion and audit notes in [issue #12](https://github.com/steipete/CodexBar/issues/12).
+## macOS permissions
+- **Full Disk Access**: For browser cookie import (Safari/Chrome/Firefox). Skip if using manual paste or local Ollama.
+- **Keychain**: Chrome cookie decryption, OAuth credentials, API tokens.
 
-## macOS permissions (why they're needed)
-- **Full Disk Access (optional)**: only required to read Safari cookies/local storage for web-based providers (Codex web, Claude web, Cursor, Droid/Factory, Ollama). If you don't grant it, use Chrome/Firefox cookies or CLI-only sources instead.
-- **Keychain access (prompted by macOS)**:
-  - Chrome cookie import needs the "Chrome Safe Storage" key to decrypt cookies.
-  - Claude OAuth credentials (written by the Claude CLI) are read from Keychain when present.
-  - z.ai API token is stored in Keychain from Preferences → Providers; Copilot stores its API token in Keychain during device flow.
-  - **How do I prevent those keychain alerts?**
-    - Open **Keychain Access.app** → login keychain → search the item (e.g., "Claude Code-credentials").
+---
+
+**Original by:** [steipete](https://github.com/steipete/CameBar)  
+**Ollama fork:** [petersykim/CameBar](https://github.com/petersykim/CameBar)
