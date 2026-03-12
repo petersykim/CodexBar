@@ -52,19 +52,35 @@ Linux support via Omarchy: community Waybar module and TUI, driven by the `codex
 
 ## Ollama Provider
 
-Ollama integration supports two modes:
+Ollama integration supports two modes with flexible authentication options:
 
 ### Cloud Mode (ollama.com)
 - **Session usage**: Resets every 3 hours
 - **Weekly usage**: Resets every 7 days
-- **Authentication**: Browser cookies (`__Secure-session`, `aid`, `cf_clearance`)
-- **Setup**: Settings → Providers → Ollama → "Import from Browser" button
 - **Dashboard**: https://ollama.com/settings
 
+#### Authentication Options (Settings → Providers → Ollama):
+
+1. **Import from Browser** (Recommended)
+   - One-click import of cookies from Safari, Chrome, or Firefox
+   - Requires Full Disk Access for first import
+   - Auto-extracts `__Secure-session`, `aid`, `cf_clearance` cookies
+
+2. **Manual Cookie Entry**
+   - Paste cookie header string directly
+   - No Full Disk Access required
+   - Format: `aid=xxx; cf_clearance=yyy; __Secure-session=zzz`
+
+3. **Config File Mode**
+   - Edit `~/.codexbar/config.json` directly
+   - Set `cookieSource: "manual"` + `cookieHeader` fields
+   - Useful for scripting or remote setups
+
 ### Local Mode (self-hosted)
-- **API endpoint**: `http://127.0.0.1:11434` (configurable)
+- **API endpoint**: `http://127.0.0.1:11434` (configurable in settings)
 - **No authentication required**
 - **Usage**: Track local model pulls, generations, and API calls
+- **Setup**: Settings → Providers → Ollama → switch to Local API mode
 
 ## Icon & Screenshot
 The menu bar icon is a tiny two-bar meter:
