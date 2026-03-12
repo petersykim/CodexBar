@@ -30,8 +30,14 @@ Tiny macOS 14+ menu bar app that keeps your Codex, Claude, Cursor, Gemini, Antig
 ### Requirements
 - macOS 14+ (Sonoma)
 
-### GitHub Releases
-Download: <https://github.com/steipete/CodexBar/releases>
+### Download (Ollama Fork)
+**Latest:** [v0.19.0 — Ollama Provider Added](https://github.com/petersykim/CodexBar/releases/tag/v0.19.0)
+- Pre-built `.app` with Ollama support
+- Free tier + self-hosted modes
+- Import from Browser button
+
+### Upstream Releases
+Original: <https://github.com/steipete/CodexBar/releases>
 
 ### Homebrew
 ```bash
